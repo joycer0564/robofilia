@@ -1,0 +1,33 @@
+import robocode.*;
+import java.awt.Color;
+
+public class MeuRoboDesviador extends AdvancedRobot {
+   
+    boolean inimigoAtirando = false;
+   
+    public void run() {
+        setColors(Color.blue, Color.white, Color.red); // define cores
+       
+        while (true) {
+            if (inimigoAtirando) {
+                desviarTiro();
+            } else {
+                ataqueRepentino();
+            }
+        }
+    }
+   
+    public void onScannedRobot(ScannedRobotEvent evento) {
+        inimigoAtirando = evento.getVelocity() != 0; // verifica se o inimigo está atirando
+    }
+   
+    public void desviarTiro() {
+        turnLeft(90);
+        ahead(100);
+    }
+   
+    public void ataqueRepentino() {
+        turnGunRight(360); // gira a arma em um círculo completo
+        fire(3); // atira com potência máxima
+    }
+}

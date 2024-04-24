@@ -1,0 +1,67 @@
+import robocode.*;
+
+public class DodgerAttacker extends AdvancedRobot {
+
+    private double enemyBearing;  // Stores the bearing of the enemy
+    private double prevEnemyEnergy; // Stores the enemy's previous energy level
+    private boolean dodgeMode = false; // Flag to indicate dodging
+
+    public void run() {
+        setTurnRadarRight(360); // Continuously scan for enemies
+    }
+
+    public void onScannedRobot(ScannedRobotEvent e) {
+        enemyBearing = e.getBearing(); // Update enemy bearing
+        double enemyEnergyDifference = prevEnemyEnergy - e.getEnergy(); // Calculate energy difference
+
+        // Detect enemy fire based on energy drop (adjust range for bullet power)
+        if (enemyEnergyDifference > 0.1 && enemyEnergyDifference < 3.0) {
+            dodgeMode = true;
+            prevEnemyEnergy = e.getEnergy(); // Update previous energy
+        } else {
+            dodgeMode = false; // Not firing, exit dodge mode
+            prevEnemyEnergy = e.getEnergy(); // Update previous energy for future detection
+        }
+    }
+
+    public void onHitWall(HitWallEvent e) {
+        // If hit a wall, reverse direction and stop dodging
+        setBack(100);
+        dodgeMode = false;
+    }
+
+    public void doMove() {
+        if (dodgeMode) {
+            // Dodge by setting a random turn direction with small movement
+            setTurnRight(getRandom(-45, 45));
+            setAhead(20);
+        } else {
+            // Move towards enemy and fire with full power
+            setTurnRight(getHeading() - getGunHeading() + enemyBearing);
+            setTurnGunRight(enemyBearing - getGunHeading());
+            setFire(3);
+            setAhead(100);
+        }
+    }
+
+    public double getRandom(double min, double max) {
+        return (Math.random() * (max - min)) + min;
+    }
+
+    public void onRobotDeath(RobotDeathEvent e) {
+        // Reset dodge mode and enemy info when enemy dies
+        dodgeMode = false;
+        prevEnemyEnergy = 100;
+    }
+
+    public void onBattleEnded(BattleEndedEvent e) {
+        // Reset dodge mode and enemy info when battle ends
+        dodgeMode = false;
+        prevEnemyEnergy = 100;
+    }
+
+    public void loop() {
+        doMove();
+        execute();
+    }
+}
